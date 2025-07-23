@@ -1,41 +1,60 @@
 import React from 'react';
-
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import HomeTabNavigator from './HomeTabNavigator';
+import Materials from './MaterialsTabNavigator';
+
 import ChapterList from '../screens/ChapterList';
-import Materials from '../screens/Materials';
 import EditProfile from '../screens/EditProfile';
 import Selection from '../screens/Selection';
+import Dashboard from '../screens/Dashboard';
+import AdmissionScreen from '../screens/AdmissionScreen';
+import AdmissionSuccessScreen from '../screens/AdmissionSuccessScreen';
+
+import Topbar from '../components/Topbar';
+import {useUserData} from '../contexts/UserDataContext';
+import {useThemeContext} from '../contexts/ThemeContext'; // Import Theme Context
+
+// Import the new screens
 
 const Stack = createNativeStackNavigator();
 
 const AppStackNavigator = () => {
+  const {userData} = useUserData();
+  const {theme} = useThemeContext(); // Get theme values
+
   return (
     <Stack.Navigator
-      initialRouteName="HomeTabs"
+      initialRouteName="Dashboard"
       screenOptions={{
-        headerShown: false,
         animation: 'ios',
       }}>
       <Stack.Screen
-        options={{navigationBarColor: '#202020'}}
-        name="HomeTabs"
-        component={HomeTabNavigator}
+        options={() => ({
+          header: () => (
+            <Topbar
+              dpUrl={userData?.profile_image_url}
+              examName={userData?.examName}
+            />
+          ),
+          navigationBarColor: theme.bg,
+        })}
+        name="Dashboard"
+        component={Dashboard}
       />
       <Stack.Screen
         options={({route}) => ({
           headerShown: true,
           headerTitle: route.params.subjectName,
-          headerShadowVisible: false,
-          navigationBarColor: '#f6f6f6',
+          headerShadowVisible: true,
+          headerBackVisible: false,
+          navigationBarColor: theme.bg,
           headerStyle: {
-            backgroundColor: '#f6f6f6',
+            backgroundColor: theme.bg,
           },
           headerTitleStyle: {
             fontFamily: 'Poppins-Regular',
             fontSize: 20,
-            color: '#121212',
+            color: theme.text,
           },
           headerTitleAlign: 'center',
         })}
@@ -45,16 +64,17 @@ const AppStackNavigator = () => {
       <Stack.Screen
         options={({route}) => ({
           headerShown: true,
+          headerBackVisible: false,
           headerTitle: route.params.chapterName,
-          navigationBarColor: '#f6f6f6',
+          navigationBarColor: theme.bg,
           headerShadowVisible: false,
           headerStyle: {
-            backgroundColor: '#f6f6f6',
+            backgroundColor: theme.bg,
           },
           headerTitleStyle: {
             fontFamily: 'Poppins-Regular',
             fontSize: 20,
-            color: '#121212',
+            color: theme.text,
           },
           headerTitleAlign: 'center',
         })}
@@ -62,18 +82,18 @@ const AppStackNavigator = () => {
         component={Materials}
       />
       <Stack.Screen
-        options={({route}) => ({
+        options={() => ({
           headerShown: true,
           headerTitle: 'Edit Profile',
-          navigationBarColor: '#f6f6f6',
+          navigationBarColor: theme.bg,
           headerShadowVisible: false,
           headerStyle: {
-            backgroundColor: '#f6f6f6',
+            backgroundColor: theme.bg,
           },
           headerTitleStyle: {
             fontFamily: 'Poppins-Regular',
             fontSize: 20,
-            color: '#121212',
+            color: theme.text,
           },
           headerTitleAlign: 'center',
         })}
@@ -81,23 +101,35 @@ const AppStackNavigator = () => {
         component={EditProfile}
       />
       <Stack.Screen
-        options={({route}) => ({
-          headerShown: true,
-          headerTitle: 'Select Course',
-          navigationBarColor: '#f6f6f6',
+        options={() => ({
+          headerShown: false,
+          navigationBarColor: theme.bg,
+        })}
+        name="Selection"
+        component={Selection}
+      />
+      <Stack.Screen
+        name="Admission"
+        component={AdmissionScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="AdmissionSuccess"
+        component={AdmissionSuccessScreen}
+        options={{
+          title: 'Application Status',
           headerShadowVisible: false,
           headerStyle: {
-            backgroundColor: '#f6f6f6',
+            backgroundColor: theme.bg,
           },
           headerTitleStyle: {
             fontFamily: 'Poppins-Regular',
             fontSize: 20,
-            color: '#121212',
+            color: theme.text,
           },
-          headerTitleAlign: 'center',
-        })}
-        name="Selection"
-        component={Selection}
+        }}
       />
     </Stack.Navigator>
   );

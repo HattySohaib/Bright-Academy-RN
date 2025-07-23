@@ -1,15 +1,16 @@
 import React, {useState} from 'react';
-import {PermissionsAndroid, Alert, Platform} from 'react-native';
 import {
   View,
   Text,
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  PermissionsAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
 import RNFS from 'react-native-fs';
-import {Notifications} from 'react-native-notifications';
-import {showAlert, showError, showSuccess} from './Toast';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // 🔹 Function to Get the Unique Download Path
 const getUniqueDownloadPath = async fileName => {
@@ -62,12 +63,12 @@ const DownloadButton = ({
   const downloadFile = async () => {
     const hasPermission = await requestStoragePermission();
     if (!hasPermission) {
-      showAlert('Permission Denied', 'Storage access is required.');
+      Alert.alert('Permission Denied', 'Storage access is required.');
       return;
     }
 
     setDownloading(true);
-    showAlert('Downloading file...');
+    Alert.alert('Download Status', 'Downloading file...');
 
     try {
       const filePath = await getUniqueDownloadPath(fileName);
@@ -78,42 +79,39 @@ const DownloadButton = ({
         progressInterval: 500, // Update every 500ms
         progress: res => {
           const progress = res.bytesWritten / res.contentLength;
-          showAlert(`Progress: ${progress * 100}%`);
+          Alert.alert(
+            'Download Status',
+            `Progress: ${Math.floor(progress * 100)}%`,
+          );
         },
       }).promise;
 
       if (downloadResult.statusCode === 200) {
-        showSuccess('Download Complete', `File saved at:\n${filePath}`);
+        Alert.alert('Download Complete', `File saved at:\n${filePath}`);
       } else {
         throw new Error('Download failed');
       }
     } catch (error) {
       console.error(error);
-      showError('Download Failed', 'Unable to download the file.');
+      Alert.alert('Download Failed', 'Unable to download the file.');
     } finally {
       setDownloading(false);
     }
   };
 
   return (
-    <View
-      style={{
-        width: '100%',
-        gap: 2,
-        alignItems: 'center',
-      }}>
+    <View style={styles.container}>
       <TouchableOpacity
-        style={{
-          width: '100%',
-          gap: 2,
-          alignItems: 'center',
-        }}
+        style={styles.button}
         onPress={downloadFile}
         disabled={downloading}>
         {downloading ? (
           <ActivityIndicator color="black" />
         ) : (
-          <Text style={styles.title}>{fileName}</Text>
+          <>
+            <MaterialCommunityIcons name="download" size={24} color="black" />
+            <Text style={styles.title}>{fileName}</Text>
+          </>
         )}
       </TouchableOpacity>
     </View>
@@ -123,14 +121,23 @@ const DownloadButton = ({
 export default DownloadButton;
 
 const styles = StyleSheet.create({
-  title: {
+  container: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     backgroundColor: '#FFE399',
-    fontFamily: 'Poppins-Regular',
-    fontSize: 20,
-    padding: 8,
+    padding: 10,
     width: '90%',
-    color: 'black',
-    textAlign: 'left',
     borderRadius: 8,
+  },
+  title: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 18,
+    color: 'black',
+    flex: 1,
   },
 });

@@ -1,17 +1,18 @@
 import {StyleSheet, Text} from 'react-native';
 import React, {useState, useEffect} from 'react';
-
 import axios from 'axios';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import Dpp from '../screens/Dpp';
 import Notes from '../screens/Notes';
-import LectureStack from '../navigation/LectureStack';
+import LectureStack from './LectureStack';
 import Loader from '../components/Loader';
+import {useThemeContext} from '../contexts/ThemeContext'; // Import Theme Context
 
 const Tab = createMaterialTopTabNavigator();
 
 const Materials = ({route, navigation}) => {
   const {chapterId} = route.params;
+  const {theme} = useThemeContext(); // Get theme values
 
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ const Materials = ({route, navigation}) => {
     const fetchStudyMaterials = async () => {
       try {
         const response = await axios.get(
-          `http://192.168.137.1:5000/api/study-materials/chapter/${chapterId}`,
+          `https://achieveyouraim.in/api/study-materials/chapter/${chapterId}`,
         );
         setStudyMaterials(response.data);
         setLoading(false);
@@ -39,7 +40,11 @@ const Materials = ({route, navigation}) => {
   }
 
   if (error) {
-    return <Text>Error fetching study materials: {error}</Text>;
+    return (
+      <Text style={{color: theme.error}}>
+        Error fetching study materials: {error}
+      </Text>
+    );
   }
 
   const videos = studyMaterials.filter(
@@ -50,21 +55,25 @@ const Materials = ({route, navigation}) => {
     material => material.material_type === 'pdf',
   );
 
+  const dpps = studyMaterials.filter(
+    material => material.material_type === 'dpp',
+  );
+
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#FFD362',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.textSecondary,
         tabBarIndicatorStyle: {
-          backgroundColor: '#FFD362',
+          backgroundColor: theme.primary,
           height: 3,
         },
         tabBarStyle: {
-          backgroundColor: '#202020',
+          backgroundColor: 'black',
         },
         tabBarLabelStyle: {
           fontFamily: 'Poppins-Regular',
         },
-        tabBarInactiveTintColor: 'white',
       }}
       initialRouteName="LectureTab">
       <Tab.Screen
@@ -83,24 +92,16 @@ const Materials = ({route, navigation}) => {
         component={Notes}
         initialParams={{notes: notes}}
       />
-
       <Tab.Screen
         options={{
           tabBarLabel: 'DPPs',
         }}
         name="DPPTab"
         component={Dpp}
+        initialParams={{dpps: dpps}}
       />
     </Tab.Navigator>
   );
 };
 
 export default Materials;
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    gap: 12,
-  },
-});

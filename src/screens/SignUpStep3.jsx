@@ -8,9 +8,11 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+import {useThemeContext} from '../contexts/ThemeContext';
 
 export default function SignUpStep3({navigation, route}) {
   const {email, name, profilePic, mobile, gender, city} = route.params; // Get data from the previous steps
+  const {theme} = useThemeContext();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,10 +45,9 @@ export default function SignUpStep3({navigation, route}) {
             name: profilePic.fileName || 'profilePic.jpg', // specify the file name if available, otherwise default to profilePic.jpg
           });
         }
-        console.log(formData);
         setLoading(true);
         const response = await axios.post(
-          'http://192.168.137.1:5000/api/users/',
+          'https://achieveyouraim.in/api/users/',
           formData,
           {
             headers: {
@@ -58,34 +59,53 @@ export default function SignUpStep3({navigation, route}) {
         if (response.status === 200) {
           console.log('User successfully created.');
           setErrorMessage('');
-          navigation.navigate('Login');
+          navigation.navigate('SignUpStatus', {
+            success: true,
+            message:
+              'Your account has been created successfully! You can now login.',
+          });
         }
       } catch (error) {
         setLoading(false);
         console.log(error);
-        const errorText =
-          error.response?.data?.message ||
-          'There was an error. Please try again.';
-        setErrorMessage(errorText);
+        const errorMessage =
+          'There was an error creating your account. Please try again.';
+        setErrorMessage(errorMessage);
+        navigation.navigate('SignUpStatus', {
+          success: false,
+          message: errorMessage,
+        });
       }
-      navigation.navigate('Login');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Step 3: Complete Sign Up</Text>
-      <Text style={styles.subtitle}>Set your account password.</Text>
+    <View style={[styles.container, {backgroundColor: theme.bg}]}>
+      <Text style={[styles.title, {color: theme.text}]}>
+        Step 3: Complete Sign Up
+      </Text>
+      <Text style={[styles.subtitle, {color: theme.textSecondary}]}>
+        Set your account password.
+      </Text>
 
       {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
       <View>
         <View>
-          <Text style={styles.label}>Password</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            Password
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="********"
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -93,11 +113,20 @@ export default function SignUpStep3({navigation, route}) {
         </View>
 
         <View>
-          <Text style={styles.label}>Confirm Password</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            Confirm Password
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="********"
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -105,22 +134,40 @@ export default function SignUpStep3({navigation, route}) {
         </View>
 
         <View>
-          <Text style={styles.label}>School Name</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            School Name
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="School Name"
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             value={schoolName}
             onChangeText={setSchoolName}
           />
         </View>
 
         <View>
-          <Text style={styles.label}>Pincode</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            Pincode
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="Pincode"
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             value={pincode}
             onChangeText={setPincode}
             keyboardType="numeric"
@@ -176,6 +223,7 @@ const styles = StyleSheet.create({
     color: 'black',
     borderColor: '#DEDEDE',
     backgroundColor: 'white',
+    marginBottom: 16,
   },
   button: {
     backgroundColor: '#D7E0FF',

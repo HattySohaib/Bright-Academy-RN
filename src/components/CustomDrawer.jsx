@@ -1,3 +1,4 @@
+import React, {useState} from 'react';
 import {
   Image,
   StyleSheet,
@@ -6,159 +7,120 @@ import {
   View,
   Pressable,
 } from 'react-native';
-import React from 'react';
 import {DrawerContentScrollView, DrawerItem} from '@react-navigation/drawer';
 import {useUserData} from '../contexts/UserDataContext';
-import edit from '../assets/icons/edit.png';
-import left from '../assets/icons/left.png';
 import {useAuthContext} from '../contexts/AuthContext';
-import logIcon from '../assets/icons/logout.png';
+import {useThemeContext} from '../contexts/ThemeContext'; // Import Theme Context
+import Icon from 'react-native-vector-icons/Feather';
 
 const CustomDrawer = ({navigation}) => {
   const {userData, loading} = useUserData();
   const {logout} = useAuthContext();
+  const {theme, toggleTheme, isDarkMode} = useThemeContext();
+  const [currentTheme, setCurrentTheme] = useState(isDarkMode);
 
   const handleLogout = () => {
     logout();
   };
 
+  const handleThemeToggle = () => {
+    toggleTheme();
+    setCurrentTheme(!currentTheme);
+  };
+
   if (loading) {
     return (
-      <View>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={[styles.loaderContainer, {backgroundColor: theme.bg}]}>
+        <ActivityIndicator size="large" color={theme.text} />
       </View>
     );
   }
 
   return (
     <DrawerContentScrollView
-      contentContainerStyle={{
-        justifyContent: 'space-between',
-        height: '100%',
-      }}>
+      contentContainerStyle={[
+        styles.drawerContainer,
+        {backgroundColor: theme.bg},
+      ]}>
       <View>
+        {/* Header Section */}
         <View
-          style={{
-            width: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#EDEDED',
-            padding: 12,
-            gap: 5,
-            marginTop: -5,
-          }}>
+          style={[
+            styles.header,
+            {backgroundColor: theme.bgSecondary || '#EDEDED'},
+          ]}>
           <Pressable
             onPress={() => navigation.toggleDrawer()}
-            style={{
-              width: '100%',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              flexDirection: 'row',
-              gap: 3,
-              marginBottom: 16,
-            }}>
-            <Image style={{height: 15, width: 15}} source={left} />
-            <Text
-              style={{
-                fontSize: 16,
-                color: '#DFA100',
-                fontFamily: 'Poppins-Regular',
-                marginBottom: -2,
-              }}>
-              close
-            </Text>
+            style={styles.closeButton}>
+            <Icon name="chevron-left" color={theme.text} size={24} />
+            <Text style={[styles.closeText, {color: theme.text}]}>Close</Text>
           </Pressable>
+
           <Image
-            style={{
-              borderRadius: 100,
-              width: 100,
-              height: 100,
-              borderWidth: 3,
-              borderColor: 'white',
-            }}
+            style={styles.profileImage}
             source={{
               uri:
                 userData?.profile_image_url ||
                 'https://cdn-icons-png.flaticon.com/512/8847/8847419.png',
             }}
           />
-          <Text
-            style={{
-              color: '#000',
-              fontFamily: 'Poppins-Regular',
-              fontSize: 20,
-              textAlign: 'center',
-              marginBottom: -5,
-            }}>
+          <Text style={[styles.name, {color: theme.text}]}>
             {userData?.name || 'Username'}
           </Text>
-          <Text
-            style={{
-              color: '#626262',
-              fontFamily: 'Poppins-Regular',
-              fontSize: 13,
-              textAlign: 'center',
-              marginBottom: 3,
-            }}>
+          <Text style={[styles.email, {color: theme.textSecondary}]}>
             {userData?.email || 'Email'}
           </Text>
-          <Pressable
-            style={{
-              backgroundColor: '#202020',
-              paddingHorizontal: 15,
-              paddingVertical: 5,
-              borderRadius: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 3,
-            }}>
-            <Image style={{height: 15, width: 15}} source={edit} />
-            <Text
-              style={{
-                fontSize: 11,
-                color: 'white',
-                fontFamily: 'Poppins-Regular',
-                marginBottom: -2,
-              }}>
-              Edit Profile
-            </Text>
-          </Pressable>
         </View>
+
+        {/* Navigation Items */}
         <View>
           <DrawerItem
+            icon={() => <Icon name="home" size={20} color={theme.text} />}
             label={'Home'}
-            onPress={() => {
-              navigation.navigate('HomeDraw');
-            }}
-            labelStyle={styles.label}
+            onPress={() => navigation.navigate('HomeDraw')}
+            labelStyle={[styles.label, {color: theme.text}]}
           />
           <DrawerItem
-            label={'About'}
-            onPress={() => {
-              navigation.navigate('About');
-            }}
-            labelStyle={styles.label}
+            icon={() => <Icon name="user" size={20} color={theme.text} />}
+            label={'Profile'}
+            onPress={() => navigation.navigate('EditProfile')}
+            labelStyle={[styles.label, {color: theme.text}]}
           />
           <DrawerItem
-            label={'Settings'}
-            onPress={() => {
-              navigation.navigate('Settings');
-            }}
-            labelStyle={styles.label}
+            icon={() => <Icon name="lock" size={20} color={theme.text} />}
+            label={'Password'}
+            onPress={() => navigation.navigate('Password')}
+            labelStyle={[styles.label, {color: theme.text}]}
+          />
+          <DrawerItem
+            icon={() => (
+              <Icon
+                name={currentTheme ? 'sun' : 'moon'}
+                size={20}
+                color={theme.text}
+              />
+            )}
+            label={currentTheme ? 'Light Mode' : 'Dark Mode'}
+            onPress={handleThemeToggle}
+            labelStyle={[styles.label, {color: theme.text}]}
+          />
+          <DrawerItem
+            icon={() => <Icon name="info" size={20} color={theme.text} />}
+            label={'About Us'}
+            onPress={() => navigation.navigate('About')}
+            labelStyle={[styles.label, {color: theme.text}]}
           />
         </View>
       </View>
-      <View style={{borderTopColor: '#e0e0e0', borderTopWidth: 1}}>
+
+      {/* Logout Section */}
+      <View style={styles.logoutContainer}>
         <DrawerItem
-          icon={() => (
-            <Image style={{height: 20, width: 20}} source={logIcon} />
-          )}
+          icon={() => <Icon name="log-out" size={20} color="red" />}
           label={'Logout'}
-          onPress={() => {
-            handleLogout();
-          }}
-          labelStyle={styles.logout}
+          onPress={handleLogout}
+          labelStyle={[styles.logout, {color: 'red'}]}
+          style={{backgroundColor: '#FFE6E6'}}
         />
       </View>
     </DrawerContentScrollView>
@@ -168,29 +130,77 @@ const CustomDrawer = ({navigation}) => {
 export default CustomDrawer;
 
 const styles = StyleSheet.create({
+  drawerContainer: {
+    justifyContent: 'space-between',
+    height: '100%',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+    gap: 5,
+    marginTop: -5,
+  },
+  closeButton: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flexDirection: 'row',
+    gap: 3,
+    marginBottom: 16,
+  },
+  closeText: {
+    fontSize: 16,
+    fontFamily: 'Poppins-Regular',
+    marginBottom: -2,
+  },
+  profileImage: {
+    borderRadius: 100,
+    width: 100,
+    height: 100,
+    borderWidth: 3,
+    borderColor: 'white',
+  },
+  name: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 20,
+    textAlign: 'center',
+    marginBottom: -5,
+  },
+  email: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 3,
+  },
+  editButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 3,
+  },
+  editText: {
+    fontSize: 11,
+    fontFamily: 'Poppins-Regular',
+    marginBottom: -2,
+    color: '#202020',
+  },
   label: {
     fontFamily: 'Poppins-Regular',
-    fontSize: 16,
-    paddingLeft: 10,
-  },
-  aboutContainer: {
-    padding: 20,
-  },
-  aboutHead: {
-    fontSize: 16,
-    fontFamily: 'Poppins-Medium',
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EDEDED',
-  },
-  aboutSubHead: {
-    fontSize: 12,
-    fontFamily: 'Poppins-Medium',
-    marginBottom: 5,
+    fontSize: 15,
+    marginLeft: -14,
   },
   logout: {
     fontFamily: 'Poppins-Regular',
     fontSize: 16,
-    color: 'red',
   },
 });

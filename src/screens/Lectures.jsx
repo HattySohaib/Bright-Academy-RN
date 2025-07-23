@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, ScrollView, Pressable} from 'react-native';
+import {useThemeContext} from '../contexts/ThemeContext'; // Import Theme Context
 
 function truncate(str, maxLength) {
   if (str.length > maxLength) {
@@ -9,9 +10,11 @@ function truncate(str, maxLength) {
 }
 
 const Lectures = ({navigation, route}) => {
+  const {theme} = useThemeContext(); // Get theme values
+
   return (
-    <ScrollView style={{backgroundColor: '#f6f6f6'}}>
-      <View style={styles.container}>
+    <ScrollView style={{backgroundColor: theme.bg}}>
+      <View style={[styles.container, {backgroundColor: theme.bg}]}>
         {route.params?.videos.map((video, index) => (
           <View
             key={index}
@@ -32,7 +35,14 @@ const Lectures = ({navigation, route}) => {
                   videoTitle: video.title,
                 })
               }>
-              <Text style={styles.title}>
+              <Text
+                style={[
+                  styles.title,
+                  {
+                    backgroundColor: theme.primary,
+                    color: 'black',
+                  },
+                ]}>
                 Lecture {index + 1} : {truncate(video.title, 18)}
               </Text>
             </Pressable>
@@ -50,15 +60,12 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingVertical: 16,
     gap: 16,
-    backgroundColor: '#f6f6f6',
   },
   title: {
-    backgroundColor: '#FFE399',
     fontFamily: 'Poppins-Regular',
     fontSize: 20,
     padding: 8,
     width: '90%',
-    color: 'black',
     textAlign: 'left',
     borderRadius: 8,
   },

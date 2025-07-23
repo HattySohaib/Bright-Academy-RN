@@ -1,9 +1,11 @@
 import React, {useState} from 'react';
 import {View, Text, TextInput, Pressable, StyleSheet} from 'react-native';
 import {Picker} from '@react-native-picker/picker';
+import {useThemeContext} from '../contexts/ThemeContext';
 
 export default function SignUpStep2({navigation, route}) {
   const {email, name, profilePic} = route.params; // Get data from the previous step
+  const {theme} = useThemeContext();
 
   const [mobile, setMobile] = useState('');
   const [gender, setGender] = useState('');
@@ -26,19 +28,32 @@ export default function SignUpStep2({navigation, route}) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.bg}]}>
       <View>
-        <Text style={styles.title}>Step 2: Add Details</Text>
-        <Text style={styles.subtitle}>Please fill in your details.</Text>
+        <Text style={[styles.title, {color: theme.text}]}>
+          Step 2: Add Details
+        </Text>
+        <Text style={[styles.subtitle, {color: theme.textSecondary}]}>
+          Please fill in your details.
+        </Text>
       </View>
       {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
       <View>
         <View>
-          <Text style={styles.label}>Mobile Number</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            Mobile Number
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="123-456-7890"
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             value={mobile}
             onChangeText={setMobile}
             keyboardType="phone-pad"
@@ -46,10 +61,19 @@ export default function SignUpStep2({navigation, route}) {
         </View>
 
         <View>
-          <Text style={styles.label}>Gender</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            Gender
+          </Text>
           <Picker
             selectedValue={gender}
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             onValueChange={setGender}>
             <Picker.Item label="Select Gender" value="" />
             <Picker.Item label="Male" value="male" />
@@ -59,11 +83,18 @@ export default function SignUpStep2({navigation, route}) {
         </View>
 
         <View>
-          <Text style={styles.label}>City</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>City</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="City Name"
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             value={city}
             onChangeText={setCity}
           />

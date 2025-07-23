@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import axios from 'axios';
 import {
   View,
   Text,
@@ -7,14 +8,25 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {useThemeContext} from '../contexts/ThemeContext'; // Import theme context
 
 export default function SignUpStep1({navigation}) {
+  const {theme} = useThemeContext(); // Get theme values
+
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [profilePic, setProfilePic] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const validateEmail = email => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   // Function to pick an image from the gallery
   const selectProfilePicture = () => {
@@ -36,39 +48,84 @@ export default function SignUpStep1({navigation}) {
     });
   };
 
-  const handleNext = () => {
-    if (!email || !name) {
+  const handleNext = async () => {
+    if (!email || !name || !profilePic) {
       setErrorMessage('All fields are required.');
-    } else {
-      navigation.navigate('SignUpStep2', {email, name, profilePic});
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setErrorMessage('');
+
+      // Send OTP request
+      const response = await axios.post(
+        'https://achieveyouraim.in/api/users/send-otp',
+        {email, forgotPassword: false},
+      );
+      if (response.status === 200) {
+        console.log('OTP sent successfully');
+        navigation.navigate('EmailVerification', {email, name, profilePic});
+      }
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      setErrorMessage(
+        error.response?.data?.message || 'Failed to send OTP. Try again.',
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.bg}]}>
       <View>
-        <Text style={styles.title}>Let’s create your account.</Text>
-        <Text style={styles.subtitle}>All fields are compulsory.</Text>
+        <Text style={[styles.title, {color: theme.text}]}>
+          Let’s create your account.
+        </Text>
+        <Text style={[styles.subtitle, {color: theme.textSecondary}]}>
+          All fields are compulsory.
+        </Text>
       </View>
 
       {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
       <View>
         <TouchableOpacity
-          style={styles.profileContainer}
+          style={[
+            styles.profileContainer,
+            {backgroundColor: theme.bgSecondary, borderColor: theme.border},
+          ]}
           onPress={selectProfilePicture}>
           {profilePic ? (
             <Image source={{uri: profilePic.uri}} style={styles.profilePic} />
           ) : (
-            <Text style={styles.uploadText}>+</Text>
+            <Text style={[styles.uploadText, {color: theme.textSecondary}]}>
+              <Icon name="camera" size={40} color={theme.textSecondary} />
+            </Text>
           )}
         </TouchableOpacity>
+
         <View>
-          <Text style={styles.label}>Email address</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            Email address
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="someone@example.com"
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -77,11 +134,20 @@ export default function SignUpStep1({navigation}) {
         </View>
 
         <View>
-          <Text style={styles.label}>Full name</Text>
+          <Text style={[styles.label, {color: theme.textSecondary}]}>
+            Full name
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: theme.border,
+                backgroundColor: theme.bg,
+                color: theme.text,
+              },
+            ]}
             placeholder="I am..."
-            placeholderTextColor="#B1B1B1"
+            placeholderTextColor={theme.textSecondary}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -89,11 +155,17 @@ export default function SignUpStep1({navigation}) {
         </View>
 
         <Pressable style={styles.button} onPress={handleNext}>
-          <Text style={styles.buttonTxt}>Next</Text>
+          {loading ? (
+            <ActivityIndicator color={'#003CFF'} />
+          ) : (
+            <Text style={styles.buttonTxt}>Next</Text>
+          )}
         </Pressable>
       </View>
 
-      <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
+      <Text
+        style={[styles.link, {color: theme.text}]}
+        onPress={() => navigation.navigate('Login')}>
         Already have an account? <Text style={styles.blue}> Login here.</Text>
       </Text>
     </View>
@@ -105,28 +177,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-evenly',
     padding: 20,
-    backgroundColor: '#F6F6F6',
   },
   title: {
     fontSize: 32,
     fontFamily: 'Poppins-Medium',
-    color: '#151515',
     textAlign: 'left',
   },
   subtitle: {
     fontSize: 16,
-    color: '#383838',
     fontFamily: 'Poppins-Light',
   },
   error: {
-    color: 'red',
     fontFamily: 'Poppins-Regular',
     textAlign: 'center',
+    color: 'red',
   },
   label: {
     paddingLeft: 2,
     fontFamily: 'Poppins-Medium',
-    color: '#4b4b4b',
     fontSize: 12,
   },
   input: {
@@ -135,20 +203,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 10,
     borderRadius: 12,
-    color: 'black',
-    borderColor: '#DEDEDE',
-    backgroundColor: 'white',
   },
   profileContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
     borderWidth: 1,
-    borderColor: '#000',
     marginBottom: 12,
   },
   profilePic: {
@@ -156,11 +219,9 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 1,
-    borderColor: '#000',
   },
   uploadText: {
     fontSize: 40,
-    color: '#777',
     fontWeight: 'bold',
   },
   button: {
@@ -180,10 +241,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Poppins-Medium',
     fontSize: 14,
-    color: '#202020',
   },
   blue: {
-    color: 'blue',
+    color: '#003CFF',
     textDecorationLine: 'underline',
   },
 });

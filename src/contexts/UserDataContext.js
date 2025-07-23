@@ -1,5 +1,11 @@
 // contexts/UserDataContext.js
-import React, {createContext, useContext, useState, useEffect} from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import {useAuthContext} from './AuthContext';
 
 // Create the UserDataContext
@@ -10,7 +16,13 @@ export const UserDataProvider = ({children}) => {
   const {user} = useAuthContext(); // Read userId from AuthContext
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [timeout, setTimeoutState] = useState(false); // New timeout state
+  const [timeout, setTimeoutState] = useState(false);
+  const [reloadTrigger, setReloadTrigger] = useState(0); // New state for triggering reloads
+
+  // Function to trigger a reload
+  const reloadUserData = useCallback(() => {
+    setReloadTrigger(prev => prev + 1); // Increment to trigger useEffect
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -19,37 +31,36 @@ export const UserDataProvider = ({children}) => {
 
         try {
           setLoading(true);
-          setTimeoutState(false); // Reset timeout state
+          setTimeoutState(false);
 
           // Start a timeout timer for 5 seconds
           timeoutId = setTimeout(() => {
             setLoading(false);
-            setTimeoutState(true); // Set timeout state to true
-          }, 5000); // Adjust duration as needed (5000 ms = 5 seconds)
+            setTimeoutState(true);
+          }, 5000);
 
           // Fetch user data from the backend
           const response = await fetch(
-            `http://192.168.137.1:5000/api/users/${user.userId}`,
+            `https://achieveyouraim.in/api/users/${user.userId}`,
           );
           const data = await response.json();
 
-          // If data is successfully fetched before the timeout, update the state
           setUserData(data);
-          clearTimeout(timeoutId); // Clear the timeout
+          clearTimeout(timeoutId); // Clear timeout if successful
         } catch (error) {
           console.error('Failed to fetch user data:', error);
         } finally {
-          clearTimeout(timeoutId); // Ensure timeout is cleared
-          setLoading(false); // Set loading to false
+          clearTimeout(timeoutId);
+          setLoading(false);
         }
       };
       fetchUserData();
-      console.log(userData);
     }
-  }, [user]);
+  }, [user, reloadTrigger]); // Depend on reloadTrigger to force refetch
 
   return (
-    <UserDataContext.Provider value={{userData, loading, timeout}}>
+    <UserDataContext.Provider
+      value={{userData, loading, timeout, reloadUserData}}>
       {children}
     </UserDataContext.Provider>
   );
